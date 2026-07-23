@@ -59,11 +59,12 @@ if st.sidebar.button("🚪 Cerrar sesión"):
 # CONEXIÓN MYSQL
 # ---------------------------------------
 
+
 conexion = mysql.connector.connect(
-    host="sql10.freesqldatabase.com",
-    user="sql10833126",
-    password="K9UJ4pHHZS",
-    database="sql10833126"
+    host=st.secrets["host"],
+    user=st.secrets["user"],
+    password=st.secrets["password"],
+    database=st.secrets["database"]
 )
 
 consulta = """
