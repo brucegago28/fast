@@ -7,8 +7,9 @@ import plotly.express as px
 # LOGIN
 # ======================================================
 
-USUARIO = "admin"
-PASSWORD = "123456"
+USUARIO = st.secrets["usuario_login"]
+PASSWORD = st.secrets["password_login"]
+
 
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
