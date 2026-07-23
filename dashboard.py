@@ -3,9 +3,44 @@ import pandas as pd
 import mysql.connector
 import plotly.express as px
 
-# ---------------------------------------
-# CONFIGURACIÓN
-# ---------------------------------------
+# ======================================================
+# LOGIN
+# ======================================================
+
+USUARIO = "admin"
+PASSWORD = "123456"
+
+if "autenticado" not in st.session_state:
+    st.session_state.autenticado = False
+
+if not st.session_state.autenticado:
+
+    st.set_page_config(
+        page_title="Login",
+        page_icon="🔐",
+        layout="centered"
+    )
+
+    st.title("🔐 Inicio de Sesión")
+    st.write("Ingrese sus credenciales para acceder al Dashboard.")
+
+    usuario = st.text_input("Usuario")
+    password = st.text_input("Contraseña", type="password")
+
+    if st.button("Ingresar", use_container_width=True):
+
+        if usuario == USUARIO and password == PASSWORD:
+            st.session_state.autenticado = True
+            st.rerun()
+        else:
+            st.error("❌ Usuario o contraseña incorrectos.")
+
+    # Detiene la ejecución para que no se cargue el dashboard
+    st.stop()
+
+# ======================================================
+# DASHBOARD
+# ======================================================
 
 st.set_page_config(
     page_title="Dashboard Ventas Laptops",
@@ -14,6 +49,11 @@ st.set_page_config(
 )
 
 st.title("💻 Dashboard de Ventas de Laptops")
+
+# Botón para cerrar sesión
+if st.sidebar.button("🚪 Cerrar sesión"):
+    st.session_state.autenticado = False
+    st.rerun()
 
 # ---------------------------------------
 # CONEXIÓN MYSQL
@@ -69,8 +109,6 @@ distrito = st.sidebar.multiselect(
 
 texto = st.sidebar.text_input("Buscar modelo")
 
-# Aplicar filtros
-
 df_filtrado = df[
     (df["marca"].isin(marca)) &
     (df["categoria"].isin(categoria)) &
@@ -83,7 +121,7 @@ if texto != "":
     ]
 
 # ---------------------------------------
-# INDICADORES
+# KPIs
 # ---------------------------------------
 
 st.subheader("📊 Indicadores")
@@ -91,32 +129,14 @@ st.subheader("📊 Indicadores")
 col1, col2, col3, col4 = st.columns(4)
 
 ventas = len(df_filtrado)
-
-ingresos = (
-    df_filtrado["precio_soles"] *
-    df_filtrado["cantidad"]
-).sum()
-
+ingresos = (df_filtrado["precio_soles"] * df_filtrado["cantidad"]).sum()
 precio_promedio = df_filtrado["precio_soles"].mean()
-
 unidades = df_filtrado["cantidad"].sum()
 
 col1.metric("Ventas", ventas)
-
-col2.metric(
-    "Ingresos",
-    f"S/ {ingresos:,.2f}"
-)
-
-col3.metric(
-    "Precio Promedio",
-    f"S/ {precio_promedio:,.2f}"
-)
-
-col4.metric(
-    "Unidades",
-    f"{unidades}"
-)
+col2.metric("Ingresos", f"S/ {ingresos:,.2f}")
+col3.metric("Precio Promedio", f"S/ {precio_promedio:,.2f}")
+col4.metric("Unidades Vendidas", unidades)
 
 st.divider()
 
@@ -127,42 +147,27 @@ st.divider()
 col1, col2 = st.columns(2)
 
 with col1:
-
     fig = px.bar(
-        df_filtrado.groupby("marca")["cantidad"]
-        .sum()
-        .reset_index(),
+        df_filtrado.groupby("marca")["cantidad"].sum().reset_index(),
         x="marca",
         y="cantidad",
         color="marca",
         title="Cantidad Vendida por Marca"
     )
-
     st.plotly_chart(fig, use_container_width=True)
 
 with col2:
-
     fig = px.pie(
         df_filtrado,
         names="categoria",
-        title="Participación por Categoría"
+        title="Ventas por Categoría"
     )
-
     st.plotly_chart(fig, use_container_width=True)
-
-# ---------------------------------------
 
 col1, col2 = st.columns(2)
 
 with col1:
-
-    ventas_distrito = (
-        df_filtrado.groupby("distrito")
-        .agg({
-            "cantidad":"sum"
-        })
-        .reset_index()
-    )
+    ventas_distrito = df_filtrado.groupby("distrito")["cantidad"].sum().reset_index()
 
     fig = px.bar(
         ventas_distrito,
@@ -175,14 +180,7 @@ with col1:
     st.plotly_chart(fig, use_container_width=True)
 
 with col2:
-
-    ventas_fecha = (
-        df_filtrado.groupby("fecha_venta")
-        .agg({
-            "cantidad":"sum"
-        })
-        .reset_index()
-    )
+    ventas_fecha = df_filtrado.groupby("fecha_venta")["cantidad"].sum().reset_index()
 
     fig = px.line(
         ventas_fecha,
@@ -195,7 +193,7 @@ with col2:
     st.plotly_chart(fig, use_container_width=True)
 
 # ---------------------------------------
-# TOP MODELOS
+# TOP 10 MODELOS
 # ---------------------------------------
 
 st.subheader("🏆 Top 10 Modelos")
@@ -225,20 +223,17 @@ st.plotly_chart(fig, use_container_width=True)
 
 st.subheader("📋 Datos")
 
-st.dataframe(
-    df_filtrado,
-    use_container_width=True
-)
+st.dataframe(df_filtrado, use_container_width=True)
 
 # ---------------------------------------
-# DESCARGAR EXCEL
+# DESCARGAR CSV
 # ---------------------------------------
 
-excel = df_filtrado.to_csv(index=False).encode("utf-8")
+csv = df_filtrado.to_csv(index=False).encode("utf-8")
 
 st.download_button(
-    "⬇ Descargar Datos",
-    excel,
+    "⬇ Descargar CSV",
+    csv,
     file_name="ventas_laptops.csv",
     mime="text/csv"
 )
