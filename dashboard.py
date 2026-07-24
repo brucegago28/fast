@@ -7,7 +7,7 @@ import mysql.connector
 # INFORMACIÓN DE CONEXIÓN A LA BASE DE DATOS
 try:
     conexion_db = mysql.connector.connect(
-        host="localhost",
+        host="sql10.freesqldatabase.com",
         user="sql10833735",
         password="9UeFiiSCXD",
         database="sql10833735"
