@@ -8,9 +8,9 @@ import mysql.connector
 try:
     conexion_db = mysql.connector.connect(
         host="localhost",
-        user="root",
-        password="12345",
-        database="wigo_motors"
+        user="sql10833735",
+        password="9UeFiiSCXD",
+        database="sql10833735"
     )
 
     consulta_sql = "SELECT * FROM ventas_vehiculos" 
